@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v1781717643 -->
+<!DOCTYPE html><!-- v1781717966 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -299,6 +299,9 @@ textarea{resize:vertical;min-height:70px}
 
   <!-- LISTA -->
   <div id="view-acomp" style="display:none">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:.5rem" id="refresh-bar" style="display:none">
+      <button onclick="syncCarregar().then(()=>{renderMetrics();renderLista();})" style="background:#0A1045;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif;display:flex;align-items:center;gap:6px">⟳ Atualizar</button>
+    </div>
     <div class="metrics" id="metrics-bar" style="display:none">
       <div class="metric"><div class="mv" id="mc-pend" style="color:#BA7517">0</div><div class="ml">Pendentes</div></div>
       <div class="metric"><div class="mv" id="mc-cotac" style="color:#0A1045">0</div><div class="ml">Em cotação</div></div>
@@ -624,12 +627,14 @@ function entrar(r){
     document.getElementById('f-nome').value='';
     document.getElementById('f-filial').value='';
     document.getElementById('save-bar').style.display='block';
-    // Load from Sheets first, then render
+    document.getElementById('refresh-bar').style.display='flex';
+    // Mostra loading e carrega do Sheets
+    setTab('acomp');
+    document.getElementById('req-list').innerHTML = '<div style="text-align:center;padding:2rem;color:#888;font-size:14px">⟳ Carregando solicitações...</div>';
     syncCarregar().then(ok => {
       renderMetrics();
       renderLista();
     });
-    // Don't render before sync completes
   } else {
     document.getElementById('tb-role-lbl').textContent=meuNome+' · '+minhaFilial;
     document.getElementById('tab-lbl').textContent='Minhas solicitações';
