@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v1781718879 -->
+<!DOCTYPE html><!-- v1781724054 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -398,9 +398,25 @@ async function syncCarregar() {
 
 async function syncNova(item) {
   if (!temIntegracao) return;
+  // Remove anexo antes de enviar (muito grande para URL)
+  const itemSemAnexo = {...item, anexo: null, anexoNome: item.anexoNome || ''};
+  const url = APPS_SCRIPT_URL + '?action=nova&t=' + Date.now() + '&item=' + encodeURIComponent(JSON.stringify(itemSemAnexo));
   try {
-    await fetch(`${APPS_SCRIPT_URL}?action=nova&item=${encodeURIComponent(JSON.stringify(item))}`);
-  } catch(e) {}
+    const resp = await fetch(url);
+    const txt = await resp.text();
+    console.log('syncNova resposta:', txt);
+  } catch(e) {
+    console.error('syncNova erro:', e);
+    // Tenta de novo após 3 segundos
+    setTimeout(async () => {
+      try {
+        await fetch(url);
+        console.log('syncNova retry OK');
+      } catch(e2) {
+        console.error('syncNova retry falhou:', e2);
+      }
+    }, 3000);
+  }
 }
 
 async function syncAtualizar(item) {
