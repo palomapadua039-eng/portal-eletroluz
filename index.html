@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v1781715645-1781715633-fixed-1781714460 -->
+<!DOCTYPE html><!-- v1781716516-1781715645-1781715633-fixed-1781714460 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -354,9 +354,9 @@ async function syncCarregar() {
     mostrarSyncStatus('Carregando dados...');
     const resp = await fetch(`${APPS_SCRIPT_URL}?action=listar`);
     const lista = await resp.json();
-    if (Array.isArray(lista) && lista.length > 0) {
-      // Sanitize data from Sheets - ensure all fields exist
-      dados = lista.map(s => ({
+    // Always update dados from Sheets (even if empty)
+    if (Array.isArray(lista)) {
+      const sanitized = lista.map(s => ({
         id: s.id || '',
         filial: s.filial || '',
         nome: s.nome || '',
@@ -374,13 +374,17 @@ async function syncCarregar() {
         anexo: null,
         anexoNome: s.anexoNome || ''
       })).filter(s => s.id !== '');
-      const maxNum = lista.reduce((max, s) => {
-        const n = parseInt(s.id.replace('ELZ-0','')) || 0;
-        return n > max ? n : max;
-      }, nextNum);
-      nextNum = maxNum + 1;
-      localStorage.setItem(LS_KEY, JSON.stringify(dados));
-      localStorage.setItem(LS_NUM, String(nextNum));
+      // Only replace if Sheets has data OR local is also empty
+      if (sanitized.length > 0 || dados.length === 0) {
+        dados = sanitized;
+        const maxNum = dados.reduce((max, s) => {
+          const n = parseInt((s.id||'').replace('ELZ-0','')) || 0;
+          return n > max ? n : max;
+        }, nextNum);
+        nextNum = maxNum + 1;
+        localStorage.setItem(LS_KEY, JSON.stringify(dados));
+        localStorage.setItem(LS_NUM, String(nextNum));
+      }
     }
     esconderSyncStatus();
     return true;
