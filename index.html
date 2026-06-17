@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v1781717966 -->
+<!DOCTYPE html><!-- v1781718879 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -353,41 +353,39 @@ const temIntegracao = APPS_SCRIPT_URL !== 'SUA_URL_AQUI' && APPS_SCRIPT_URL.incl
 
 async function syncCarregar() {
   if (!temIntegracao) return false;
+  mostrarSyncStatus('Carregando dados...');
   try {
-    mostrarSyncStatus('Carregando dados...');
-    const resp = await fetch(`${APPS_SCRIPT_URL}?action=listar`);
-    const lista = await resp.json();
-    // Always update dados from Sheets (even if empty)
-    if (Array.isArray(lista)) {
-      const sanitized = lista.map(s => ({
-        id: s.id || '',
-        filial: s.filial || '',
-        nome: s.nome || '',
-        tipo: s.tipo || '',
-        desc: s.desc || '',
+    const resp = await fetch(APPS_SCRIPT_URL + '?action=listar&t=' + Date.now());
+    const texto = await resp.text();
+    let lista;
+    try { lista = JSON.parse(texto); } catch(e) { lista = []; }
+    
+    if (Array.isArray(lista) && lista.length > 0) {
+      dados = lista.map(s => ({
+        id: String(s.id || ''),
+        filial: String(s.filial || ''),
+        nome: String(s.nome || ''),
+        tipo: String(s.tipo || ''),
+        desc: String(s.desc || ''),
         qtd: Number(s.qtd) || 1,
-        urg: s.urg || 'NORMAL',
-        just: s.just || '',
-        aprov: s.aprov || '',
-        forn: s.forn || '',
-        obs: s.obs || '',
-        status: s.status || 'Pendente',
+        urg: String(s.urg || 'NORMAL'),
+        just: String(s.just || ''),
+        aprov: String(s.aprov || ''),
+        forn: String(s.forn || ''),
+        obs: String(s.obs || ''),
+        status: String(s.status || 'Pendente'),
         ts: Number(s.ts) || 0,
-        excluido: s.excluido === true || s.excluido === 'true',
+        excluido: s.excluido === true || s.excluido === 'true' || s.excluido === 1,
         anexo: null,
-        anexoNome: s.anexoNome || ''
+        anexoNome: String(s.anexoNome || '')
       })).filter(s => s.id !== '');
-      // Only replace if Sheets has data OR local is also empty
-      if (sanitized.length > 0 || dados.length === 0) {
-        dados = sanitized;
-        const maxNum = dados.reduce((max, s) => {
-          const n = parseInt((s.id||'').replace('ELZ-0','')) || 0;
-          return n > max ? n : max;
-        }, nextNum);
-        nextNum = maxNum + 1;
-        localStorage.setItem(LS_KEY, JSON.stringify(dados));
-        localStorage.setItem(LS_NUM, String(nextNum));
-      }
+      
+      const maxNum = dados.reduce((max, s) => {
+        const n = parseInt(s.id.replace('ELZ-0','')) || 0;
+        return n > max ? n : max;
+      }, 245);
+      nextNum = maxNum + 1;
+      localStorage.setItem(LS_NUM, String(nextNum));
     }
     esconderSyncStatus();
     return true;
@@ -396,6 +394,7 @@ async function syncCarregar() {
     return false;
   }
 }
+
 
 async function syncNova(item) {
   if (!temIntegracao) return;
@@ -603,7 +602,7 @@ function salvarEdit(){
   closeEdit();autoSalvar();if(temIntegracao)syncAtualizar(dados.find(x=>x.id===editId)||{});renderLista();
 }
 function setFiltro(el,f){document.querySelectorAll('.filt').forEach(b=>b.classList.remove('on'));el.classList.add('on');filtroAtual=f;confirmDelId=null;renderLista();}
-function setTab(t){document.getElementById('view-nova').style.display=t==='nova'?'block':'none';document.getElementById('view-acomp').style.display=t==='acomp'?'block':'none';document.getElementById('tab-nova').classList.toggle('on',t==='nova');document.getElementById('tab-acomp').classList.toggle('on',t==='acomp');if(t==='acomp'){ if(role==='admin'){ syncCarregar().then(()=>{ renderMetrics(); renderLista(); }); } else { renderLista(); } }}
+function setTab(t){document.getElementById('view-nova').style.display=t==='nova'?'block':'none';document.getElementById('view-acomp').style.display=t==='acomp'?'block':'none';document.getElementById('tab-nova').classList.toggle('on',t==='nova');document.getElementById('tab-acomp').classList.toggle('on',t==='acomp');if(t==='acomp'){ if(role==='admin'){ document.getElementById('req-list').innerHTML='<div style="text-align:center;padding:2rem;color:#888;font-size:14px">⟳ Carregando...</div>'; syncCarregar().then(()=>{ renderMetrics(); renderLista(); }); } else { renderLista(); } }}
 function abrirIdModal(){document.getElementById('id-modal').style.display='block';document.getElementById('id-filial').value='';document.getElementById('id-nome').value='';document.getElementById('id-senha-field').value='';document.getElementById('id-error').textContent='';setTimeout(()=>document.getElementById('id-filial').focus(),80);}
 function fecharIdModal(){document.getElementById('id-modal').style.display='none';}
 function confirmarIdentidade(){
@@ -628,9 +627,13 @@ function entrar(r){
     document.getElementById('f-filial').value='';
     document.getElementById('save-bar').style.display='block';
     document.getElementById('refresh-bar').style.display='flex';
-    // Mostra loading e carrega do Sheets
-    setTab('acomp');
-    document.getElementById('req-list').innerHTML = '<div style="text-align:center;padding:2rem;color:#888;font-size:14px">⟳ Carregando solicitações...</div>';
+    // Carrega do Sheets e renderiza UMA ÚNICA VEZ
+    document.getElementById('tab-nova').classList.remove('on');
+    document.getElementById('tab-acomp').classList.add('on');
+    document.getElementById('view-nova').style.display='none';
+    document.getElementById('view-acomp').style.display='block';
+    document.getElementById('req-list').innerHTML='<div style="text-align:center;padding:2rem;color:#888;font-size:14px">⟳ Carregando solicitações do servidor...</div>';
+    document.getElementById('empty').style.display='none';
     syncCarregar().then(ok => {
       renderMetrics();
       renderLista();
