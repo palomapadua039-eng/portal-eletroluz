@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v1781717024 -->
+<!DOCTYPE html><!-- v1781717643 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -453,14 +453,14 @@ const dadosIniciais=[
   {id:'ELZ-0231',filial:'Presidente Prudente',nome:'Suzana Naomi',tipo:'Outros',desc:'Armário Guarda Volumes',qtd:1,urg:'NORMAL',just:'Mais um armário para pertences.',aprov:'Sim',forn:'',obs:'',status:'Cancelado',ts:20260611172100,anexo:null,excluido:false},
 ];
 
-// CARREGAR dados do localStorage ou usar iniciais
+// CARREGAR dados — sempre começa vazio, Sheets é a fonte de verdade
 function carregarDados(){
   try{
-    const saved=localStorage.getItem(LS_KEY);
     const savedNum=localStorage.getItem(LS_NUM);
-    if(saved){dados=JSON.parse(saved);}else{dados=[...dadosIniciais];}
     if(savedNum){nextNum=parseInt(savedNum);}
-  }catch(e){dados=[...dadosIniciais];}
+    // Não carrega dados do localStorage — Sheets é a fonte principal
+    dados=[];
+  }catch(e){dados=[];}
 }
 
 function salvarLocal(){
