@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v1781716516-1781715645-1781715633-fixed-1781714460 -->
+<!DOCTYPE html><!-- v1781717024 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -600,7 +600,7 @@ function salvarEdit(){
   closeEdit();autoSalvar();if(temIntegracao)syncAtualizar(dados.find(x=>x.id===editId)||{});renderLista();
 }
 function setFiltro(el,f){document.querySelectorAll('.filt').forEach(b=>b.classList.remove('on'));el.classList.add('on');filtroAtual=f;confirmDelId=null;renderLista();}
-function setTab(t){document.getElementById('view-nova').style.display=t==='nova'?'block':'none';document.getElementById('view-acomp').style.display=t==='acomp'?'block':'none';document.getElementById('tab-nova').classList.toggle('on',t==='nova');document.getElementById('tab-acomp').classList.toggle('on',t==='acomp');if(t==='acomp')renderLista();}
+function setTab(t){document.getElementById('view-nova').style.display=t==='nova'?'block':'none';document.getElementById('view-acomp').style.display=t==='acomp'?'block':'none';document.getElementById('tab-nova').classList.toggle('on',t==='nova');document.getElementById('tab-acomp').classList.toggle('on',t==='acomp');if(t==='acomp'){ if(role==='admin'){ syncCarregar().then(()=>{ renderMetrics(); renderLista(); }); } else { renderLista(); } }}
 function abrirIdModal(){document.getElementById('id-modal').style.display='block';document.getElementById('id-filial').value='';document.getElementById('id-nome').value='';document.getElementById('id-senha-field').value='';document.getElementById('id-error').textContent='';setTimeout(()=>document.getElementById('id-filial').focus(),80);}
 function fecharIdModal(){document.getElementById('id-modal').style.display='none';}
 function confirmarIdentidade(){
@@ -624,7 +624,12 @@ function entrar(r){
     document.getElementById('f-nome').value='';
     document.getElementById('f-filial').value='';
     document.getElementById('save-bar').style.display='block';
-    syncCarregar().then(() => { renderMetrics(); renderLista(); });
+    // Load from Sheets first, then render
+    syncCarregar().then(ok => {
+      renderMetrics();
+      renderLista();
+    });
+    // Don't render before sync completes
   } else {
     document.getElementById('tb-role-lbl').textContent=meuNome+' · '+minhaFilial;
     document.getElementById('tab-lbl').textContent='Minhas solicitações';
