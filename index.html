@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v1781878807 -->
+<!DOCTYPE html><!-- v1781878965 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -680,10 +680,9 @@ function selAprov(el,v){document.querySelectorAll('.aprovb').forEach(b=>b.classN
 function enviar(){
   const f=document.getElementById('f-filial').value,n=document.getElementById('f-nome').value.trim(),d=document.getElementById('f-desc').value.trim(),j=document.getElementById('f-just').value.trim(),t=document.getElementById('f-tipo').value,q=parseInt(document.getElementById('f-qtd').value)||0;
   if(!f||!n||!d||!j||!t||!urgSel||!aprovSel||q<1){alert('Preencha todos os campos obrigatórios.');return;}
-  // ID será gerado pelo servidor - mostra provisório enquanto aguarda
-  const idProvisorio = 'ELZ-' + Date.now().toString().slice(-6);
-  document.getElementById('suc-num').textContent = idProvisorio;
-  let id = idProvisorio;
+  // Mostra aguardando enquanto servidor gera o ID
+  document.getElementById('suc-num').textContent = '...';
+  let id = 'ELZ-TEMP-' + Date.now();
   const ts=parseInt(new Date().toISOString().replace(/\D/g,'').slice(0,14));
   dados.unshift({id,filial:f,nome:n,tipo:t,desc:d,qtd:q,urg:urgSel==='normal'?'NORMAL':urgSel==='urgente'?'URGENTE':'CRÍTICO',just:j,aprov:aprovSel==='sim'?'Sim':'Não',forn:document.getElementById('f-forn').value,obs:'',status:'Pendente',ts,anexo:arquivoAtual?{...arquivoAtual}:null,excluido:false});
   autoSalvar();
