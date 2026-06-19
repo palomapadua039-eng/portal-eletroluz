@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v1781878529 -->
+<!DOCTYPE html><!-- v1781878807 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -339,6 +339,9 @@ textarea{resize:vertical;min-height:70px}
 </div>
 
 <script>
+// Limpa localStorage automaticamente ao carregar
+try { localStorage.clear(); } catch(e) {}
+
 const SENHA_ADMIN='eletroluz2026';
 const SENHAS_FILIAL={'Matriz':'eletro2005','Sarandi':'eletro3006','Cianorte':'eletro6523','Campo Mourão':'eletro8596','Umuarama':'eletro7845','Apucarana':'eletro7452','CD':'eletro7423','Exceleds':'eletro8569','Maringá 02':'eletro8856','Londrina':'eletro7455','Ponta Grossa':'eletro7457','Presidente Prudente':'eletro1256'};
 const LS_KEY='eletroluz_portal_dados';
