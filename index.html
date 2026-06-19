@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v1781873631 -->
+<!DOCTYPE html><!-- v1781878529 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -395,23 +395,33 @@ async function syncCarregar() {
 
 async function syncNova(item) {
   if (!temIntegracao) return;
-  // Remove anexo antes de enviar (muito grande para URL)
   const itemSemAnexo = {...item, anexo: null, anexoNome: item.anexoNome || ''};
-  const url = APPS_SCRIPT_URL + '?action=nova&t=' + Date.now() + '&item=' + encodeURIComponent(JSON.stringify(itemSemAnexo));
   try {
+    // Primeiro busca o próximo ID único do servidor
+    const respId = await fetch(APPS_SCRIPT_URL + '?action=proximoId&t=' + Date.now());
+    const dataId = await respId.json();
+    if (dataId && dataId.id) {
+      itemSemAnexo.id = dataId.id;
+      // Atualiza ID na lista local
+      const idx = dados.findIndex(x => x.id === item.id);
+      if (idx >= 0) dados[idx].id = dataId.id;
+      // Atualiza protocolo na tela de sucesso
+      const el = document.getElementById('suc-num');
+      if (el && el.textContent === item.id) el.textContent = dataId.id;
+    }
+    // Agora grava com o ID definitivo
+    const url = APPS_SCRIPT_URL + '?action=nova&t=' + Date.now() + '&item=' + encodeURIComponent(JSON.stringify(itemSemAnexo));
     const resp = await fetch(url);
     const txt = await resp.text();
-    console.log('syncNova resposta:', txt);
+    console.log('syncNova OK:', txt);
   } catch(e) {
     console.error('syncNova erro:', e);
     // Tenta de novo após 3 segundos
     setTimeout(async () => {
       try {
-        await fetch(url);
-        console.log('syncNova retry OK');
-      } catch(e2) {
-        console.error('syncNova retry falhou:', e2);
-      }
+        const itemSemAnexo2 = {...item, anexo: null};
+        await fetch(APPS_SCRIPT_URL + '?action=nova&t=' + Date.now() + '&item=' + encodeURIComponent(JSON.stringify(itemSemAnexo2)));
+      } catch(e2) { console.error('retry falhou:', e2); }
     }, 3000);
   }
 }
@@ -667,11 +677,10 @@ function selAprov(el,v){document.querySelectorAll('.aprovb').forEach(b=>b.classN
 function enviar(){
   const f=document.getElementById('f-filial').value,n=document.getElementById('f-nome').value.trim(),d=document.getElementById('f-desc').value.trim(),j=document.getElementById('f-just').value.trim(),t=document.getElementById('f-tipo').value,q=parseInt(document.getElementById('f-qtd').value)||0;
   if(!f||!n||!d||!j||!t||!urgSel||!aprovSel||q<1){alert('Preencha todos os campos obrigatórios.');return;}
-  // Gera ID único usando timestamp + random para evitar duplicatas entre filiais
-  const tsId = Date.now().toString().slice(-6);
-  const rand = Math.floor(Math.random()*100).toString().padStart(2,'0');
-  const id = 'ELZ-' + tsId + rand;
-  document.getElementById('suc-num').textContent=id;
+  // ID será gerado pelo servidor - mostra provisório enquanto aguarda
+  const idProvisorio = 'ELZ-' + Date.now().toString().slice(-6);
+  document.getElementById('suc-num').textContent = idProvisorio;
+  let id = idProvisorio;
   const ts=parseInt(new Date().toISOString().replace(/\D/g,'').slice(0,14));
   dados.unshift({id,filial:f,nome:n,tipo:t,desc:d,qtd:q,urg:urgSel==='normal'?'NORMAL':urgSel==='urgente'?'URGENTE':'CRÍTICO',just:j,aprov:aprovSel==='sim'?'Sim':'Não',forn:document.getElementById('f-forn').value,obs:'',status:'Pendente',ts,anexo:arquivoAtual?{...arquivoAtual}:null,excluido:false});
   autoSalvar();
