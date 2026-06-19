@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v1781871708 -->
+<!DOCTYPE html><!-- v1781871945 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -189,9 +189,6 @@ textarea{resize:vertical;min-height:70px}
         <h3>Identificação</h3><p>Selecione sua filial e informe a senha</p>
         <div class="fg" style="margin-bottom:10px;text-align:left"><label>Filial <span class="req">*</span></label>
           <select id="id-filial"><option value="">Selecione...</option><option>Matriz</option><option>Sarandi</option><option>Cianorte</option><option>Campo Mourão</option><option>Umuarama</option><option>Apucarana</option><option>CD</option><option>Exceleds</option><option>Maringá 02</option><option>Londrina</option><option>Ponta Grossa</option><option>Presidente Prudente</option></select>
-        </div>
-        <div class="fg" style="margin-bottom:10px;text-align:left"><label>Seu nome <span class="req">*</span></label>
-          <input type="text" id="id-nome" placeholder="Seu nome completo">
         </div>
         <div class="fg" style="margin-bottom:12px;text-align:left"><label>Senha da filial <span class="req">*</span></label>
           <input type="password" id="id-senha-field" placeholder="••••••••" style="letter-spacing:.1em" onkeydown="if(event.key==='Enter')confirmarIdentidade()">
@@ -558,7 +555,7 @@ function renderLista(){
   const busca=(document.getElementById('busca')?document.getElementById('busca').value||'':'').toLowerCase();
   const lista=document.getElementById('req-list'),empty=document.getElementById('empty');
   document.getElementById('lixeira-banner').style.display=filtroAtual==='Excluído'?'flex':'none';
-  let baseArr=role==='solic'?dados.filter(s=>(s.nome||'').toLowerCase()===meuNome.toLowerCase()&&s.filial===minhaFilial):dados;
+  let baseArr=role==='solic'?dados.filter(s=>s.filial===minhaFilial):dados;
   const{active,done,excl}=sortDados(baseArr);
   let filtrados=filtroAtual==='Excluído'?excl:filtroAtual==='todos'?[...active,...done]:[...active,...done].filter(s=>s.status===filtroAtual);
   filtrados=filtrados.filter(s=>!busca||[s.id,s.desc].some(x=>(x||'').toString().toLowerCase().includes(busca)));
@@ -618,15 +615,14 @@ function salvarEdit(){
 }
 function setFiltro(el,f){document.querySelectorAll('.filt').forEach(b=>b.classList.remove('on'));el.classList.add('on');filtroAtual=f;confirmDelId=null;renderLista();}
 function setTab(t){document.getElementById('view-nova').style.display=t==='nova'?'block':'none';document.getElementById('view-acomp').style.display=t==='acomp'?'block':'none';document.getElementById('tab-nova').classList.toggle('on',t==='nova');document.getElementById('tab-acomp').classList.toggle('on',t==='acomp');if(t==='acomp'){ if(role==='admin'){ document.getElementById('req-list').innerHTML='<div style="text-align:center;padding:2rem;color:#888;font-size:14px">⟳ Carregando...</div>'; syncCarregar().then(()=>{ renderMetrics(); renderLista(); }); } else { renderLista(); } }}
-function abrirIdModal(){document.getElementById('id-modal').style.display='block';document.getElementById('id-filial').value='';document.getElementById('id-nome').value='';document.getElementById('id-senha-field').value='';document.getElementById('id-error').textContent='';setTimeout(()=>document.getElementById('id-filial').focus(),80);}
+function abrirIdModal(){document.getElementById('id-modal').style.display='block';document.getElementById('id-filial').value='';document.getElementById('id-senha-field').value='';document.getElementById('id-error').textContent='';setTimeout(()=>document.getElementById('id-filial').focus(),80);}
 function fecharIdModal(){document.getElementById('id-modal').style.display='none';}
 function confirmarIdentidade(){
-  const f=document.getElementById('id-filial').value,n=document.getElementById('id-nome').value.trim(),s=document.getElementById('id-senha-field').value,err=document.getElementById('id-error');
+  const f=document.getElementById('id-filial').value,s=document.getElementById('id-senha-field').value,err=document.getElementById('id-error');
   if(!f){err.textContent='Selecione sua filial.';return;}
-  if(!n){err.textContent='Informe seu nome.';return;}
   if(!s){err.textContent='Informe a senha da filial.';return;}
   if(SENHAS_FILIAL[f]!==s){err.textContent='Senha incorreta para esta filial.';document.getElementById('id-senha-field').value='';return;}
-  meuNome=n;minhaFilial=f;fecharIdModal();entrar('solic');
+  meuNome='';minhaFilial=f;fecharIdModal();entrar('solic');
 }
 function abrirSenhaAdmin(){document.getElementById('pw-modal').style.display='block';document.getElementById('pw-field').value='';document.getElementById('pw-error').textContent='';setTimeout(()=>document.getElementById('pw-field').focus(),80);}
 function fecharModalAdmin(){document.getElementById('pw-modal').style.display='none';}
@@ -654,10 +650,11 @@ function entrar(r){
       renderLista();
     });
   } else {
-    document.getElementById('tb-role-lbl').textContent=meuNome+' · '+minhaFilial;
+    document.getElementById('tb-role-lbl').textContent=minhaFilial+' · Solicitante';
     document.getElementById('tab-lbl').textContent='Minhas solicitações';
     document.getElementById('metrics-bar').style.display='none';
-    document.getElementById('f-nome').value=meuNome;
+    document.getElementById('f-nome').value='';
+    document.getElementById('f-nome').removeAttribute('readonly');
     document.getElementById('f-filial').value=minhaFilial;
     document.getElementById('save-bar').style.display='none';
   }
@@ -681,7 +678,7 @@ function enviar(){
 function novaForm(){
   ['f-tipo'].forEach(id=>document.getElementById(id).value='');
   ['f-desc','f-qtd','f-forn','f-just'].forEach(id=>document.getElementById(id).value='');
-  if(role==='solic'){document.getElementById('f-nome').value=meuNome;document.getElementById('f-filial').value=minhaFilial;}
+  if(role==='solic'){document.getElementById('f-nome').value='';document.getElementById('f-filial').value=minhaFilial;}
   else{document.getElementById('f-nome').value='';document.getElementById('f-filial').value='';}
   urgSel='';aprovSel='';arquivoAtual=null;
   document.querySelectorAll('.urgb').forEach(b=>b.className='urgb');
