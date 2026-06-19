@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v1781878965 -->
+<!DOCTYPE html><!-- v1781879272 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -410,7 +410,7 @@ async function syncNova(item) {
       if (idx >= 0) dados[idx].id = dataId.id;
       // Atualiza protocolo na tela de sucesso
       const el = document.getElementById('suc-num');
-      if (el && el.textContent === item.id) el.textContent = dataId.id;
+      if (el) el.textContent = dataId.id;
     }
     // Agora grava com o ID definitivo
     const url = APPS_SCRIPT_URL + '?action=nova&t=' + Date.now() + '&item=' + encodeURIComponent(JSON.stringify(itemSemAnexo));
@@ -674,7 +674,7 @@ function entrar(r){
 }
 function sair(){role='';meuNome='';minhaFilial='';filtroAtual='todos';urgSel='';aprovSel='';openDetailId=null;confirmDelId=null;arquivoAtual=null;document.getElementById('main-app').style.display='none';document.getElementById('login-screen').style.display='block';document.getElementById('edit-wrap').style.display='none';document.getElementById('save-bar').style.display='none';novaForm();}
 function handleFile(input){const file=input.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){arquivoAtual={nome:file.name,tipo:file.type,dataUrl:e.target.result};const isImg=file.type.startsWith('image/');const img=document.getElementById('file-img');if(isImg){img.src=e.target.result;img.style.display='block';}else img.style.display='none';document.getElementById('file-name-txt').textContent=isImg?file.name:'📎 '+file.name;document.getElementById('file-preview-wrap').style.display='block';document.getElementById('upload-zone').style.display='none';};reader.readAsDataURL(file);}
-function removeFile(){arquivoAtual=null;document.getElementById('f-arquivo').value='';document.getElementById('file-preview-wrap').style.display='none';document.getElementById('file-img').src='';document.getElementById('upload-zone').style.display='block';}
+function removeFile(){arquivoAtual=null;try{const fa=document.getElementById('f-arquivo');if(fa)fa.value='';const fp=document.getElementById('file-preview-wrap');if(fp)fp.style.display='none';const fi=document.getElementById('file-img');if(fi)fi.src='';const uz=document.getElementById('upload-zone');if(uz)uz.style.display='block';}catch(e){}}
 function selUrg(el,v){document.querySelectorAll('.urgb').forEach(b=>b.className='urgb');el.classList.add('sel-'+v);urgSel=v;}
 function selAprov(el,v){document.querySelectorAll('.aprovb').forEach(b=>b.className='aprovb');el.classList.add('sel-'+v);aprovSel=v;}
 function enviar(){
