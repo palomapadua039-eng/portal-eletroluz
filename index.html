@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v1781871945 -->
+<!DOCTYPE html><!-- v1781873631 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -667,7 +667,10 @@ function selAprov(el,v){document.querySelectorAll('.aprovb').forEach(b=>b.classN
 function enviar(){
   const f=document.getElementById('f-filial').value,n=document.getElementById('f-nome').value.trim(),d=document.getElementById('f-desc').value.trim(),j=document.getElementById('f-just').value.trim(),t=document.getElementById('f-tipo').value,q=parseInt(document.getElementById('f-qtd').value)||0;
   if(!f||!n||!d||!j||!t||!urgSel||!aprovSel||q<1){alert('Preencha todos os campos obrigatórios.');return;}
-  const id='ELZ-0'+String(nextNum++).padStart(4,'0');
+  // Gera ID único usando timestamp + random para evitar duplicatas entre filiais
+  const tsId = Date.now().toString().slice(-6);
+  const rand = Math.floor(Math.random()*100).toString().padStart(2,'0');
+  const id = 'ELZ-' + tsId + rand;
   document.getElementById('suc-num').textContent=id;
   const ts=parseInt(new Date().toISOString().replace(/\D/g,'').slice(0,14));
   dados.unshift({id,filial:f,nome:n,tipo:t,desc:d,qtd:q,urg:urgSel==='normal'?'NORMAL':urgSel==='urgente'?'URGENTE':'CRÍTICO',just:j,aprov:aprovSel==='sim'?'Sim':'Não',forn:document.getElementById('f-forn').value,obs:'',status:'Pendente',ts,anexo:arquivoAtual?{...arquivoAtual}:null,excluido:false});
